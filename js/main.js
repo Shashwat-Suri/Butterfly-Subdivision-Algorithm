@@ -11,11 +11,11 @@ function resize_canvas(){
     // Lookup the size the browser is displaying the canvas.
     var displayWidth  = canvas.clientWidth;
     var displayHeight = canvas.clientHeight;
- 
+
     // Check if the canvas is not the same size.
     if (canvas.width  != displayWidth ||
         canvas.height != displayHeight) {
- 
+
         // Make the canvas the same size
         canvas.width  = displayWidth;
         canvas.height = displayHeight;
@@ -26,9 +26,9 @@ function resize_canvas(){
 function initEventHandlers (canvas, gl_operation) {
     var lastX = -1;
     var lastY = -1;
-    
+
     var dragging = false;
- 
+
     canvas.onmousedown = function(ev) {  //Mouse is pressed
         if (load_mesh) {
             dragging = true;
@@ -39,16 +39,16 @@ function initEventHandlers (canvas, gl_operation) {
             ev.preventDefault();
         }
     };
- 
+
     canvas.onmouseup = function(ev){ //Mouse is released
         dragging = false;
     };
- 
+
     canvas.onmousemove = function(ev) { //Mouse is moved
         if (dragging) {
             var dX = (lastY - ev.clientY) * 2 * Math.PI / canvas.height;
             var dY = (ev.clientX - lastX) * 2 * Math.PI / canvas.width;
-            
+
             lastX = ev.clientX;
             lastY = ev.clientY;
 
@@ -69,7 +69,6 @@ function initEventHandlers (canvas, gl_operation) {
         else {
             dis -= 0.1;
         }
-
         gl_operation.zoom(dis);
         gl_operation.drawSetup();
         gl_operation.drawMesh(cur_mesh);
@@ -104,9 +103,8 @@ initEventHandlers(canvas, gl_operation);
 var subdivisionInput = document.getElementById("subdivisionInput");
 subdivisionInput.addEventListener("focusout", function(){
     var input_value = subdivisionInput.value;
-
     // Calling subdivison here
-
+    subdivider(cur_mesh).subdivide(input_value);
     gl_operation.drawSetup();
     gl_operation.modelSetup(cur_mesh);
     gl_operation.drawMesh(cur_mesh);
@@ -116,10 +114,8 @@ var subInc = document.getElementById("subIncrease");
 subInc.addEventListener("click", function(){
     var input_value = parseInt(subdivisionInput.value);
     input_value += 1;
-    subdivisionInput.value = input_value; 
-    
-    // Calling subdivision here
-    
+    subdivisionInput.value = input_value;
+    cur_mesh = subdivider(cur_mesh).subdivide(subdivisionInput.value);
     gl_operation.drawSetup();
     gl_operation.modelSetup(cur_mesh);
     gl_operation.drawMesh(cur_mesh);
@@ -131,9 +127,8 @@ subDec.addEventListener("click", function(){
     if (input_value > 0) {
         input_value -= 1;
         subdivisionInput.value = input_value;
-    
+        cur_mesh = subdivider(cur_mesh).subdivide(subdivisionInput.value);
         // Calling subdivision here
-        
         gl_operation.drawSetup();
         gl_operation.modelSetup(cur_mesh);
         gl_operation.drawMesh(cur_mesh);
@@ -162,4 +157,3 @@ $(document).ready(function(){
         });
     });
 });
-

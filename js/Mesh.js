@@ -6,11 +6,13 @@ class Vertex {
     constructor(x, y, z, idx) {
         this.position = new Vector3D(x, y, z);
         this.id = idx;
+        this.isNew = false;
     }
 
     getPos() { return this.position; }
     getEdge()  { return this.he; }
     getId() { return this.id; }
+    getNew() {return this.isNew;}
 
     setPos(dx, dy, dz) {
         this.position.value[0] = dx;
@@ -20,6 +22,10 @@ class Vertex {
 
     setEdge(e) {
         this.he = e;
+    }
+
+    setNew(x){
+      this.isNew = x;
     }
 }
 
@@ -31,12 +37,14 @@ class HalfEdge {
     getPrev() { return this.prev; }
     getNext() { return this.next; }
     getFace() { return this.face; }
+    getIsSplit() {return this.isSplit;}
 
     setOrigin(v) { this.origin = v; }
     setTwin(e) { this.twin = e; }
     setPrev(e) { this.prev = e; }
     setNext(e) { this.next = e; }
     setFace(f) { this.face = f; }
+    setSplit(s) {this.isSplit = s; }
 }
 
 class Face {
@@ -52,7 +60,7 @@ class Face {
                 case 0: return this.he.origin;
                 case 1: return this.he.next.origin;
                 case 2: return this.he.prev.origin;
-            }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  
+            }
         }
     }
 
@@ -69,6 +77,10 @@ class Face {
 
         return w.normalize();
     }
+
+    notTriangle(){
+      return (this.he.next.next != this.he.prev)
+    }
 }
 
 class Mesh {
@@ -79,6 +91,24 @@ class Mesh {
         this.normals = [];
 
         this.edgeMap = new Map();
+    }
+
+    isSplits() {
+      this.edges.forEach(e=>{
+        if(e.getIsSplit()){
+          return true;
+        }
+      })
+      return false;
+    }
+
+    isNonTriangles() {
+      this.vertices.forEach(v=>{
+        if(v.notTriangle()){
+          return true;
+        }
+      })
+      return false;
     }
 
     builMesh (verts, normals, faces) {
@@ -144,8 +174,8 @@ class Mesh {
 
     addVertexPos (x, y, z, i) {
         var v = new Vertex(x, y, z, i);
-        this.vertices.push(v); 
-        return this.vertices[this.vertices.length - 1];                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
+        this.vertices.push(v);
+        return this.vertices[this.vertices.length - 1];
     }
 
     addFaceByVerts (v1, v2, v3) {
@@ -163,7 +193,7 @@ class Mesh {
         // Add the face to the mesh
         var f = new Face();
         this.faces.push(f);
-        
+
         // Initialize face-edge relationship
         f.setEdge(e1);
 
@@ -187,25 +217,25 @@ class Mesh {
     addHalfEdge () {
         var he = new HalfEdge();
         this.edges.push(he);
-        return this.edges[this.edges.length - 1]; 
+        return this.edges[this.edges.length - 1];
     }
 
     addEdge (v1, v2) {
         var he = new HalfEdge();
         this.edges.push(he);
-        
+
         var key = String(v1.getId()) + "," + String(v2.getId());
         this.edgeMap.set(key, he);
 
         // Associate edge with its origin vertex
         he.setOrigin(v1);
         if (v1.getEdge() === undefined) {
-            v1.setEdge(he); 
+            v1.setEdge(he);
         }
 
         // Associate edge with its twin, if it exists
         var t_he = this.findEdge(v2, v1);
-        if (t_he === undefined) {} 
+        if (t_he === undefined) {}
         else {
             he.setTwin(t_he);
             t_he.setTwin(he);
