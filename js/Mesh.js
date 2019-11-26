@@ -93,9 +93,9 @@ class Mesh {
         this.edgeMap = new Map();
     }
 
-    isSplits() {
+    SplitsLeft() {
       this.edges.forEach(e=>{
-        if(e.getIsSplit()){
+        if(!e.getIsSplit()){
           return true;
         }
       })
@@ -103,8 +103,8 @@ class Mesh {
     }
 
     isNonTriangles() {
-      this.vertices.forEach(v=>{
-        if(v.notTriangle()){
+      this.faces.forEach(f=>{
+        if(f.notTriangle()){
           return true;
         }
       })
