@@ -34,7 +34,6 @@ function subdivider (input_mesh) {
     }
 
     this.subIncrease = function(){
-      console.log("heyo")
       m = new Mesh()
       m.copyMesh(this.meshes[this.meshes.length-1])
 
@@ -47,6 +46,7 @@ function subdivider (input_mesh) {
       m.getEdges().forEach(e => {
         e.setIsSplit(false);
       })
+
       while (m.SplitsLeft() === true){
         m.getEdges().forEach(e=>{
           if(e.getIsSplit() === false){
@@ -100,24 +100,23 @@ function subdivider (input_mesh) {
 
 
     this.cutACorner = function(f,mesh){
-          while(!f.getEdge().getOrigin().getNew()
-                ||
-                f.getEdge().getNext().getOrigin().getNew()){
+          while(!(f.getEdge().getOrigin().getNew() ){
+                console.log("loop")
             f.setEdge(f.getEdge().getNext())
           }
 
-          v = f.getEdge().getOrigin();
-          v1 = f.getEdge().getNext().getOrigin();
-          v2 = f.getEdge().getNext().getNext().getOrigin();
+          v1 = f.getEdge().getOrigin();
+          v2 = f.getEdge().getNext().getOrigin();
+          v3 = f.getEdge().getNext().getNext().getOrigin();
 
-          nhe = mesh.addEdge(v,v2);
+          nhe = mesh.addEdge(v3,v1);
           nhe.setIsSplit(true);
 
-          nhetwin = mesh.addEdge(v2,v1);
+          nhetwin = mesh.addEdge(v1,v3);
           nhetwin.setIsSplit(true);
 
           mesh.addFaceByVerts(v,v1,v2);
-          f.setEdge(nhe);
+          f.setEdge(nhetwin);
 
     }
 
