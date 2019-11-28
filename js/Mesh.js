@@ -44,7 +44,7 @@ class HalfEdge {
     setPrev(e) { this.prev = e; }
     setNext(e) { this.next = e; }
     setFace(f) { this.face = f; }
-    setSplit(s) {this.isSplit = s; }
+    setIsSplit(s) {this.isSplit = s; }
 }
 
 class Face {
@@ -79,7 +79,7 @@ class Face {
     }
 
     notTriangle(){
-      return (this.he.next.next != this.he.prev)
+      return (this.he.next.next !== this.he.prev)
     }
 }
 
@@ -94,21 +94,22 @@ class Mesh {
     }
 
     SplitsLeft() {
-      this.edges.forEach(e=>{
-        if(!e.getIsSplit()){
+      for(var x in this.getEdges()){
+        if(this.getEdges()[x].getIsSplit() == false){
           return true;
         }
-      })
+      }
       return false;
     }
 
     isNonTriangles() {
-      this.faces.forEach(f=>{
-        if(f.notTriangle()){
+      for(var x in this.faces){
+        if(this.getFaces()[x].notTriangle()){
           return true;
         }
-      })
+      }
       return false;
+
     }
 
     builMesh (verts, normals, faces) {
@@ -294,7 +295,6 @@ class Mesh {
             count.push(0);
         }
 
-        console.log(this.faces.length);
         for (var i = 0; i < this.faces.length; i++) {
             var f = this.faces[i];
             var n = f.computeNormal();

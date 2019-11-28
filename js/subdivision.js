@@ -13,11 +13,15 @@ function subdivider (input_mesh) {
         // store it in memory for later.
         // If the calling code asks for a level that has already been computed,
         // just return the pre-computed mesh!
-
+        console.log("mesh length:"+meshes.length);
+        console.log("level:" +level);
         while(level>=this.meshes.length){
-          this.subInc();
+          subIncrease();
         }
 
+        console.log("vertices:" + meshes[level].getVertices().length);
+        console.log("edges:"+meshes[level].getEdges().length/2);
+        console.log("faces:"+meshes[level].getFaces().length);
         return meshes[level];
          // REPLACE THIS!
         //@@@@@
@@ -29,9 +33,10 @@ function subdivider (input_mesh) {
         this.meshes = [];
     }
 
-    this.subInc = function(){
-      m = new Mesh();
-      m.copyMesh(this.meshes[this.meshes.length-1]);
+    this.subIncrease = function(){
+      console.log("heyo")
+      m = new Mesh()
+      m.copyMesh(this.meshes[this.meshes.length-1])
 
       //set all vertices to not-new
       m.getVertices().forEach(v => {
@@ -40,34 +45,24 @@ function subdivider (input_mesh) {
 
       //set all edges to not-split
       m.getEdges().forEach(e => {
-        e.setSplit(false);
+        e.setIsSplit(false);
       })
-
-
-      while (m.SplitsLeft()){
-        for(e in m.getEdges()){
-          if(e.getIsSplit() == false){
-            console.log("splitting edge");
+      while (m.SplitsLeft() === true){
+        m.getEdges().forEach(e=>{
+          if(e.getIsSplit() === false){
             this.splitEdge(e,m);
           }
-        }
+        });
       }
 
       while (m.isNonTriangles()){
-        for(f in m.getFaces()){
+        m.getFaces().forEach(f=>{
           if(f.notTriangle()){
-            console.log("cutting a corner");
             this.cutACorner(f,m);
           }
-        }
+        })
       }
-
-      m.computeNormal();
-
-
-
-      //
-
+      m.computeNormal()
       this.meshes.push(m);
     }
 
@@ -75,23 +70,53 @@ function subdivider (input_mesh) {
       vert1 = he.getOrigin();
       vert2 = he.getTwin().getOrigin();
       vadd = vert1.getPos().add(vert2.getPos());
-      v = mesh.addVertexPos(vadd.getPos().x/2,vadd.getPos().y/2,vadd.getPos().z/2,4);
+      var v = mesh.addVertexPos(
+        vadd.x()/2,
+        vadd.y()/2,
+        vadd.z()/2,
+        mesh.getVertices().length)
       v.setNew(true);
-      nhe = mesh.addHalfEdge();
-      nhetwin = mesh.addHalfEdge();
-      nhe.setTwin(nhetwin);
-      nhetwin.setTwin(nhe);
+
+      nhe = mesh.addEdge(vert2,v);
+      nhe.setPrev(he.getPrev());
+      nhe.setNext(he);
+      nhe.setFace(he.getFace());
+      nhe.setIsSplit(true);
+
+      nhetwin = mesh.addEdge(v,vert2);
+      nhetwin.setPrev(he.getTwin());
+      nhetwin.setNext(he.getTwin().getNext());
+      nhetwin.setFace(he.getTwin().getFace());
+      nhetwin.setIsSplit(true);
+
       he.setOrigin(v);
       he.setPrev(nhe);
-      he.getTwin().setNext(nhetwin);
-      he.setSplit(true);
-      he.getTwin().setSplit(true);
-      nhe.setSplit(true);
-      nhetwin.setSplit(true);
+      he.setIsSplit(true);
 
+      he.getTwin().setNext(nhetwin);
+      he.getTwin().setIsSplit(true);
     }
 
+
+
     this.cutACorner = function(f,mesh){
+          while(!f.getEdge().getOrigin().getNew()){
+            f.setEdge(f.getEdge().getNext())
+          }
+          for(var i =0; i < 3;i++){
+            v = f.getEdge().getPrev().getOrigin();
+            v1 = f.getEdge().getPrev().getPrev().getOrigin();
+            v2 = f.getEdge().getOrigin();
+
+            nhe = mesh.addEdge(v1,v2);
+            nhe.setIsSplit(true);
+
+            nhetwin = mesh.addEdge(v2,v1);
+            nhetwin.setIsSplit(true);
+
+            mesh.addFaceByVerts(v,v1,v2);
+            f.setEdge(nhe);
+          }
 
     }
 

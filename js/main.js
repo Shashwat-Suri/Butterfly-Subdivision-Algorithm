@@ -1,6 +1,7 @@
 // Check the availability of WebGL
 const canvas = document.getElementById("glCanvas");
 
+
 const gl = canvas.getContext("webgl2");
 if (gl == null) {
     alert("Unable to initialize WebGL. Your browser or machine may not support it.");
@@ -95,6 +96,7 @@ let loader = new OBJLoader();
 let mesh_file = '';
 let cur_mesh = new Mesh();
 let load_mesh = false;
+let cur_subdivider = subdivider(cur_mesh);
 
 // Initial canvas event handlers
 initEventHandlers(canvas, gl_operation);
@@ -104,7 +106,7 @@ var subdivisionInput = document.getElementById("subdivisionInput");
 subdivisionInput.addEventListener("focusout", function(){
     var input_value = subdivisionInput.value;
     // Calling subdivison here
-    subdivider(cur_mesh).subdivide(input_value);
+    cur_mesh = cur_subdivider.subdivide(input_value);
     gl_operation.drawSetup();
     gl_operation.modelSetup(cur_mesh);
     gl_operation.drawMesh(cur_mesh);
@@ -115,7 +117,7 @@ subInc.addEventListener("click", function(){
     var input_value = parseInt(subdivisionInput.value);
     input_value += 1;
     subdivisionInput.value = input_value;
-    cur_mesh = subdivider(cur_mesh).subdivide(subdivisionInput.value);
+    cur_mesh = cur_subdivider.subdivide(input_value);
     gl_operation.drawSetup();
     gl_operation.modelSetup(cur_mesh);
     gl_operation.drawMesh(cur_mesh);
@@ -127,8 +129,9 @@ subDec.addEventListener("click", function(){
     if (input_value > 0) {
         input_value -= 1;
         subdivisionInput.value = input_value;
-        cur_mesh = subdivider(cur_mesh).subdivide(subdivisionInput.value);
+        cur_mesh = cur_subdivider.subdivide(input_value);
         // Calling subdivision here
+        gl_operation.modelSetup(cur_mesh);
         gl_operation.drawSetup();
         gl_operation.modelSetup(cur_mesh);
         gl_operation.drawMesh(cur_mesh);
