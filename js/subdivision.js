@@ -100,23 +100,24 @@ function subdivider (input_mesh) {
 
 
     this.cutACorner = function(f,mesh){
-          while(!f.getEdge().getOrigin().getNew()){
+          while(!f.getEdge().getOrigin().getNew()
+                ||
+                f.getEdge().getNext().getOrigin().getNew()){
             f.setEdge(f.getEdge().getNext())
           }
-          for(var i =0; i < 3;i++){
-            v = f.getEdge().getPrev().getOrigin();
-            v1 = f.getEdge().getPrev().getPrev().getOrigin();
-            v2 = f.getEdge().getOrigin();
 
-            nhe = mesh.addEdge(v1,v2);
-            nhe.setIsSplit(true);
+          v = f.getEdge().getOrigin();
+          v1 = f.getEdge().getNext().getOrigin();
+          v2 = f.getEdge().getNext().getNext().getOrigin();
 
-            nhetwin = mesh.addEdge(v2,v1);
-            nhetwin.setIsSplit(true);
+          nhe = mesh.addEdge(v,v2);
+          nhe.setIsSplit(true);
 
-            mesh.addFaceByVerts(v,v1,v2);
-            f.setEdge(nhe);
-          }
+          nhetwin = mesh.addEdge(v2,v1);
+          nhetwin.setIsSplit(true);
+
+          mesh.addFaceByVerts(v,v1,v2);
+          f.setEdge(nhe);
 
     }
 
