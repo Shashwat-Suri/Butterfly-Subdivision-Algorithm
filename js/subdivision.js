@@ -133,7 +133,6 @@ function subdivider (input_mesh) {
 
     this.positionSetter = function(vertices, old_mesh){
       this.positionVert = function(vert){
-        console.log("got called")
         if(!vert.isNew){
           return;
         }
@@ -157,19 +156,18 @@ function subdivider (input_mesh) {
         Left = origEdge.goBack1().origin;
         Right = origEdgeTwin.origin
 
-        var sum = vert.getPos();
+        var sum = new Vector3D(0,0,0)
         //console.log(sum.value);
 
-        sum = sum.add(topVert.getPos().multiply(2));
-        sum = sum.add(bottomVert.getPos().multiply(2));
-        sum = sum.subtract(topRight.getPos().multiply(1));
-        sum = sum.subtract(topLeft.getPos().multiply(1));
-        sum = sum.subtract(bottomRight.getPos().multiply(1));
-        sum = sum.subtract(bottomLeft.getPos().multiply(1));
-        sum = sum.add(Left.getPos().multiply(8));
-        sum = sum.add(Right.getPos().multiply(8));
-        sumn = sum.normalize();
-        vert.setPos(sumn.x(), sumn.y(), sumn.z());
+        sum = sum.add(topVert.getPos().multiply(2/16));
+        sum = sum.add(bottomVert.getPos().multiply(2/16));
+        sum = sum.subtract(topRight.getPos().multiply(1/16));
+        sum = sum.subtract(topLeft.getPos().multiply(1/16));
+        sum = sum.subtract(bottomRight.getPos().multiply(1/16));
+        sum = sum.subtract(bottomLeft.getPos().multiply(1/16));
+        sum = sum.add(Left.getPos().multiply(8/16));
+        sum = sum.add(Right.getPos().multiply(8/16));
+        vert.setPos(sum.x(), sum.y(), sum.z());
         //vert.isNew = false;
 
       }
