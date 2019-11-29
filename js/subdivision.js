@@ -44,6 +44,9 @@ function subdivider (input_mesh) {
         }
       });
 
+      this.positionSetter(m.getVertices(),m);
+
+
       origFaceLength = m.getFaces().length;
       for(j = 0; j<origFaceLength; j++){
         this.cutACorner(m.getFaces()[j],m);
@@ -100,7 +103,6 @@ function subdivider (input_mesh) {
     this.cutACorner = function(f,mesh){
       while(!f.isTriangle()){
         while(!(f.getEdge().getOrigin().getNew() || f.getEdge().getNext().getNext().getOrigin().getNew())){
-          console.log("loop")
           f.setEdge(f.getEdge().getNext())
         }
           v1 = f.getEdge().getOrigin();
@@ -128,6 +130,56 @@ function subdivider (input_mesh) {
           f.setEdge(nhetwin.getNext().getNext());
       }
     }
+
+    this.positionSetter = function(vertices, old_mesh){
+      this.positionVert = function(vert){
+        console.log("got called")
+        if(!vert.isNew){
+          return;
+        }
+
+        while(vert.getEdge().next.origin.getNew()){
+          vert.setEdge(vert.goClockwise1());
+        }
+
+        origEdge = vert.getEdge()
+        origEdgeTwin = origEdge.getTwin()
+
+        topVert = origEdge.next.goStraight1().next.origin
+        bottomVert = origEdgeTwin.goStraight1().next.goStraight1().next.origin;
+
+        topRight = origEdge.twin.goClockwise1().goClockwise1().goStraight1().next.origin;
+        topLeft = origEdge.goBack1().goAnticlowise1().goAnticlowise1().goStraight1().next.origin;
+
+        bottomRight = origEdgeTwin.goAnticlowise1().goAnticlowise1().goStraight1().next.origin;
+        bottomLeft = origEdge.goBack1().goClockwise1().goClockwise1().goStraight1().next.origin;
+
+        Left = origEdge.goBack1().origin;
+        Right = origEdgeTwin.origin
+
+        var sum = vert.getPos();
+        //console.log(sum.value);
+
+        sum = sum.add(topVert.getPos().multiply(2));
+        sum = sum.add(bottomVert.getPos().multiply(2));
+        sum = sum.subtract(topRight.getPos().multiply(1));
+        sum = sum.subtract(topLeft.getPos().multiply(1));
+        sum = sum.subtract(bottomRight.getPos().multiply(1));
+        sum = sum.subtract(bottomLeft.getPos().multiply(1));
+        sum = sum.add(Left.getPos().multiply(8));
+        sum = sum.add(Right.getPos().multiply(8));
+        sumn = sum.normalize();
+        vert.setPos(sumn.x(), sumn.y(), sumn.z());
+        //vert.isNew = false;
+
+      }
+
+      old_verts = old_mesh.getVertices();
+      for(j = 0; j < old_verts.length; j++){
+        this.positionVert(old_verts[j]);
+      }
+
+  }
 
     return this;
 }

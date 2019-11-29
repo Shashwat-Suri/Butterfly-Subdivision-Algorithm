@@ -45,6 +45,11 @@ class HalfEdge {
     setNext(e) { this.next = e; }
     setFace(f) { this.face = f; }
     setIsSplit(s) {this.isSplit = s; }
+    goClockwise1(){return this.twin.next}
+    goAnticlowise1(){return this.prev.twin}
+    goStraight1(){return this.twin.goClockwise1().goClockwise1().goClockwise1()}
+    goBack1(){return this.prev.twin.goAnticlowise1().goAnticlowise1().twin}
+
 }
 
 class Face {
