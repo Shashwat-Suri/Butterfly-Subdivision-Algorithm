@@ -1,18 +1,8 @@
 function subdivider (input_mesh) {
     this.meshes = [];
-
-    // Initializes this subdivision object with a mesh to use as
-    // the control mesh (ie: subdivision level 0).
     this.meshes.push(input_mesh);
 
     this.subdivide = function (level) {
-        // Subdivides the control mesh to the given subdivision level.
-        // Returns the subdivided mesh.
-
-        // HINT: Create a new subdivision mesh for each subdivision level and
-        // store it in memory for later.
-        // If the calling code asks for a level that has already been computed,
-        // just return the pre-computed mesh!
         console.log("mesh length:"+meshes.length);
         console.log("level:" +level);
         while(level>=this.meshes.length){
@@ -22,11 +12,7 @@ function subdivider (input_mesh) {
         console.log("vertices:" + meshes[level].getVertices().length);
         console.log("edges:"+meshes[level].getEdges().length/2);
         console.log("faces:"+meshes[level].getFaces().length);
-        return meshes[level];
-         // REPLACE THIS!
-        //@@@@@
-        // YOUR CODE HERE
-        //@@@@@
+        return this.meshes[level];
     }
 
     this.clear = function (m) {
@@ -47,110 +33,100 @@ function subdivider (input_mesh) {
         e.setIsSplit(false);
       })
 
+      origEdgeLength = m.getEdges().length;
+      for(j = 0; j < origEdgeLength; j++){
+        this.splitEdge(m.getEdges()[j],m);
+      }
+
       m.getEdges().forEach(e=>{
         if(!e.getIsSplit()){
           this.splitEdge(e,m);
         }
       });
 
-      var old_faces = Array.from(m.getFaces())
-      old_faces.forEach(f=>{
-          console.log("splitting a face")
-          this.cutACorner(f,m);
-      })
-
-
-      m.getFaces().forEach(f=>{
-        console.log(f)
-        console.log(f.vert(0))
-        console.log(f.vert(1))
-        console.log(f.vert(2))
-      })
+      origFaceLength = m.getFaces().length;
+      for(j = 0; j<origFaceLength; j++){
+        this.cutACorner(m.getFaces()[j],m);
+      }
 
       m.computeNormal()
       this.meshes.push(m);
     }
 
+
     this.splitEdge = function(he,mesh){
+      if(he.getIsSplit()){
+        return;
+      }
+      l=mesh.getVertices().length;
       vert1 = he.getOrigin();
-      vert2 = he.getTwin().getOrigin();
+      vert2 = he.getNext().getOrigin();
       vadd = vert1.getPos().add(vert2.getPos());
-      var v = mesh.addVertexPos(
+      v = mesh.addVertexPos(
         vadd.x()/2,
         vadd.y()/2,
         vadd.z()/2,
-        mesh.getVertices().length)
+        l);
+      v.setEdge(he);
+      he.setOrigin(v);
       v.setNew(true);
 
-      if(mesh.findEdge(vert2,v) !== undefined){
-        nhe = mesh.findEdge(vert2,v)
-      }
-      else{
-        nhe = mesh.addEdge(vert2,v);
-      }
 
-      nhe.setPrev(he.getPrev());
+      nhe = mesh.addEdge(vert1,v);
+      nhetwin = mesh.addEdge(v,vert1);
+
+      pEdge = he.getPrev();
+
+      he.setPrev(nhe);
       nhe.setNext(he);
-      nhe.setFace(he.getFace());
-      nhe.setIsSplit(true);
 
-      if(mesh.findEdge(v,vert2) !== undefined){
-        nhetwin = mesh.findEdge(v,vert2)
-      }
-      else{
-        nhetwin = mesh.addEdge(v,vert2);
-      }
+      pEdge.setNext(nhe)
+      nhe.setPrev(pEdge);
 
-      nhetwin.setPrev(he.getTwin());
       nhetwin.setNext(he.getTwin().getNext());
-      nhetwin.setFace(he.getTwin().getFace());
+      he.getTwin().getNext().setPrev(nhetwin);
+
+      he.getTwin().setNext(nhetwin)
+      nhetwin.setPrev(he.getTwin())
+
+      he.setIsSplit(true);
+      he.getTwin().setIsSplit(true);
+      nhe.setIsSplit(true);
       nhetwin.setIsSplit(true);
 
-      he.setOrigin(v);
-      he.setPrev(nhe);
-      he.setIsSplit(true);
 
-      he.getTwin().setNext(nhetwin);
-      he.getTwin().setIsSplit(true);
+
     }
-
-
-
     this.cutACorner = function(f,mesh){
-          while(!f.getEdge().getOrigin().getNew()){
-            console.log("loop")
-            f.setEdge(f.getEdge().getNext())
-          }
-          for(var i=0;i<3;i++){
-            v1 = f.getEdge().getOrigin();
-            v2 = f.getEdge().getNext().getOrigin();
-            v3 = f.getEdge().getNext().getNext().getOrigin();
+      while(!f.isTriangle()){
+        while(!(f.getEdge().getOrigin().getNew() || f.getEdge().getNext().getNext().getOrigin().getNew())){
+          console.log("loop")
+          f.setEdge(f.getEdge().getNext())
+        }
+          v1 = f.getEdge().getOrigin();
+          v2 = f.getEdge().getNext().getOrigin();
+          v3 = f.getEdge().getNext().getNext().getOrigin();
 
-            if(mesh.findEdge(v3,v1) !== undefined){
-              nhe = mesh.findEdge(v3,v1)
-            }
-            else{
-              nhe = mesh.addEdge(v3,v1);
-            }
-            nhe.setIsSplit(true);
-            nhe.setPrev(f.getEdge().getNext());
-            nhe.setNext(f.getEdge());
+          nhe = mesh.addEdge(v3,v1);
+          nhe.setIsSplit(true);
+          nhe.setPrev(f.getEdge().getNext());
+          nhe.setNext(f.getEdge());
 
-            nhetwin = mesh.addEdge(v1,v3);
-            nhetwin.setIsSplit(true);
-            nhetwin.setPrev(f.getEdge().getPrev());
-            nhetwin.setNext(f.getEdge().getNext().getNext());
+          nhetwin = mesh.addEdge(v1,v3);
+          nhetwin.setIsSplit(true);
+          nhetwin.setPrev(f.getEdge().getPrev());
+          nhetwin.setNext(f.getEdge().getNext().getNext());
+          nhetwin.setFace(f);
 
-            f.getEdge().getPrev().setNext(nhetwin);
-            f.getEdge().getNext().getNext().setPrev(nhetwin);
+          f.getEdge().getPrev().setNext(nhetwin);
+          f.getEdge().getNext().getNext().setPrev(nhetwin);
 
-            f.getEdge().setPrev(nhe);
-            f.getEdge().getNext().setNext(nhe);
+          f.getEdge().setPrev(nhe);
+          f.getEdge().getNext().setNext(nhe);
 
-            mesh.addFaceByVerts(v1,v2,v3);
-            f.setEdge(nhetwin.getNext());
-          }
-
+          mesh.addFaceByVerts(v1,v2,v3);
+          f.setEdge(nhetwin.getNext().getNext());
+      }
     }
 
     return this;

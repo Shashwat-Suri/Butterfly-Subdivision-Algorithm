@@ -78,9 +78,9 @@ class Face {
         return w.normalize();
     }
 
-    notTriangle(){
+    isTriangle(){
 
-      return (this.he.next.next.next !== this.he)
+      return (this.he.next.next.next == this.he);
     }
 }
 

@@ -151,7 +151,7 @@ $(document).ready(function(){
         loader.load(mesh_file, function(out){
             console.log('Read Mesh!');
             cur_mesh.builMesh(out.vertices, out.normals, out.faces);
-
+            subdivider = new subdivider(cur_mesh);
             gl_operation.drawSetup();
             gl_operation.cameraSetup();
             gl_operation.modelSetup(cur_mesh);
