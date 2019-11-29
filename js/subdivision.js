@@ -47,21 +47,26 @@ function subdivider (input_mesh) {
         e.setIsSplit(false);
       })
 
-      while (m.SplitsLeft() === true){
-        m.getEdges().forEach(e=>{
-          if(e.getIsSplit() === false){
-            this.splitEdge(e,m);
-          }
-        });
-      }
+      m.getEdges().forEach(e=>{
+        if(!e.getIsSplit()){
+          this.splitEdge(e,m);
+        }
+      });
 
-      while (m.isNonTriangles()){
-        m.getFaces().forEach(f=>{
-          if(f.notTriangle()){
-            this.cutACorner(f,m);
-          }
-        })
-      }
+      var old_faces = Array.from(m.getFaces())
+      old_faces.forEach(f=>{
+          console.log("splitting a face")
+          this.cutACorner(f,m);
+      })
+
+
+      m.getFaces().forEach(f=>{
+        console.log(f)
+        console.log(f.vert(0))
+        console.log(f.vert(1))
+        console.log(f.vert(2))
+      })
+
       m.computeNormal()
       this.meshes.push(m);
     }
@@ -77,13 +82,25 @@ function subdivider (input_mesh) {
         mesh.getVertices().length)
       v.setNew(true);
 
-      nhe = mesh.addEdge(vert2,v);
+      if(mesh.findEdge(vert2,v) !== undefined){
+        nhe = mesh.findEdge(vert2,v)
+      }
+      else{
+        nhe = mesh.addEdge(vert2,v);
+      }
+
       nhe.setPrev(he.getPrev());
       nhe.setNext(he);
       nhe.setFace(he.getFace());
       nhe.setIsSplit(true);
 
-      nhetwin = mesh.addEdge(v,vert2);
+      if(mesh.findEdge(v,vert2) !== undefined){
+        nhetwin = mesh.findEdge(v,vert2)
+      }
+      else{
+        nhetwin = mesh.addEdge(v,vert2);
+      }
+
       nhetwin.setPrev(he.getTwin());
       nhetwin.setNext(he.getTwin().getNext());
       nhetwin.setFace(he.getTwin().getFace());
@@ -100,23 +117,39 @@ function subdivider (input_mesh) {
 
 
     this.cutACorner = function(f,mesh){
-          while(!(f.getEdge().getOrigin().getNew() ){
-                console.log("loop")
+          while(!f.getEdge().getOrigin().getNew()){
+            console.log("loop")
             f.setEdge(f.getEdge().getNext())
           }
+          for(var i=0;i<3;i++){
+            v1 = f.getEdge().getOrigin();
+            v2 = f.getEdge().getNext().getOrigin();
+            v3 = f.getEdge().getNext().getNext().getOrigin();
 
-          v1 = f.getEdge().getOrigin();
-          v2 = f.getEdge().getNext().getOrigin();
-          v3 = f.getEdge().getNext().getNext().getOrigin();
+            if(mesh.findEdge(v3,v1) !== undefined){
+              nhe = mesh.findEdge(v3,v1)
+            }
+            else{
+              nhe = mesh.addEdge(v3,v1);
+            }
+            nhe.setIsSplit(true);
+            nhe.setPrev(f.getEdge().getNext());
+            nhe.setNext(f.getEdge());
 
-          nhe = mesh.addEdge(v3,v1);
-          nhe.setIsSplit(true);
+            nhetwin = mesh.addEdge(v1,v3);
+            nhetwin.setIsSplit(true);
+            nhetwin.setPrev(f.getEdge().getPrev());
+            nhetwin.setNext(f.getEdge().getNext().getNext());
 
-          nhetwin = mesh.addEdge(v1,v3);
-          nhetwin.setIsSplit(true);
+            f.getEdge().getPrev().setNext(nhetwin);
+            f.getEdge().getNext().getNext().setPrev(nhetwin);
 
-          mesh.addFaceByVerts(v,v1,v2);
-          f.setEdge(nhetwin);
+            f.getEdge().setPrev(nhe);
+            f.getEdge().getNext().setNext(nhe);
+
+            mesh.addFaceByVerts(v1,v2,v3);
+            f.setEdge(nhetwin.getNext());
+          }
 
     }
 

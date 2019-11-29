@@ -79,6 +79,7 @@ class Face {
     }
 
     notTriangle(){
+
       return (this.he.next.next.next !== this.he)
     }
 }
